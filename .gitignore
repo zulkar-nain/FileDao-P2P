@@ -4,3 +4,16 @@ __pycache__/
 
 # Ignore the virtual environment
 .venv/
+
+# Ignore SSL certificates
+*.pem
+
+# Ignore IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
