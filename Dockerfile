@@ -52,6 +52,7 @@ USER appuser
 
 # Environment variables
 ENV FLASK_ENV=production
+ENV PORT=8000
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
@@ -60,18 +61,7 @@ EXPOSE 8000
 
 # Health check - use curl instead of requests
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD ["sh", "-c", "curl -fsS http://localhost:${PORT:-8000}/health >/dev/null || exit 1"]
 
 # Run with Gunicorn + Eventlet
-CMD ["gunicorn", \
-     "--worker-class", "eventlet", \
-     "--workers", "1", \
-     "--bind", "0.0.0.0:8000", \
-     "--timeout", "120", \
-     "--keep-alive", "5", \
-     "--max-requests", "1000", \
-     "--max-requests-jitter", "50", \
-     "--access-logfile", "-", \
-     "--error-logfile", "-", \
-     "--log-level", "info", \
-     "run:app"]
+CMD ["sh", "-c", "exec gunicorn --worker-class eventlet --workers 1 --bind 0.0.0.0:${PORT:-8000} --timeout 120 --keep-alive 5 --max-requests 1000 --max-requests-jitter 50 --access-logfile - --error-logfile - --log-level info run:app"]

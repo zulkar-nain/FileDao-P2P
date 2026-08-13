@@ -10,4 +10,5 @@ replicas = 1
 
 [env]
 FLASK_ENV = "production"
+PORT = "8000"
 PYTHONUNBUFFERED = "1"
