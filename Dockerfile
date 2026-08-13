@@ -4,7 +4,7 @@
 # ========================================
 # Build Stage
 # ========================================
-FROM python:3.11-slim as builder
+FROM python:3.11-slim AS builder
 
 # Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -31,6 +31,7 @@ FROM python:3.11-slim
 # Install runtime dependencies only
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libffi8 \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
@@ -57,9 +58,9 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # Expose port
 EXPOSE 8000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8000/health', timeout=5)" || exit 1
+# Health check - use curl instead of requests
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
 
 # Run with Gunicorn + Eventlet
 CMD ["gunicorn", \
