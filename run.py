@@ -16,12 +16,17 @@ def get_config_name():
     return os.environ.get('FLASK_ENV', 'default')
 
 
+# Create app at module level for gunicorn
+config_name = get_config_name()
+app = create_app(config_name)
+
+# Expose socketio for gunicorn
+# gunicorn will use: gunicorn --worker-class eventlet run:app
+
+
 def main():
-    """Main entry point."""
-    config_name = get_config_name()
+    """Main entry point for direct python run.py execution."""
     app_config = config[config_name]
-    
-    app = create_app(config_name)
     
     host = getattr(app_config, 'HOST', '0.0.0.0')
     port = getattr(app_config, 'PORT', 5000)
@@ -32,7 +37,7 @@ def main():
     print(f"Debug mode: {debug}")
     print("Note: For WebRTC on LAN, use Chrome with --allow-insecure-localhost flag")
     
-    # Run with SocketIO
+    # Run with SocketIO (for direct python run.py)
     socketio.run(
         app,
         host=host,
