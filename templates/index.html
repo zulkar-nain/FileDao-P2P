@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Local P2P File Sharing - Transfer files directly between devices on your local network">
+    <title>FileDao - Local P2P File Share</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    <span>FileDao</span>
+                </div>
+                <p class="tagline">Local P2P File Sharing</p>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Role Selection Screen -->
+            <section id="role-screen" class="screen active" role="region" aria-label="Choose your role">
+                <div class="role-card">
+                    <h2>How do you want to share?</h2>
+                    <div class="role-options">
+                        <button type="button" class="role-btn" id="host-btn" aria-label="Create a room to send files">
+                            <svg class="role-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="17 8 12 3 7 8"/>
+                                <line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                            <span class="role-title">Send Files</span>
+                            <span class="role-desc">Create a room and share via PIN or QR code</span>
+                        </button>
+                        <button type="button" class="role-btn" id="peer-btn" aria-label="Join a room to receive files">
+                            <svg class="role-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M5 3h14v14H5z"/>
+                                <polyline points="14 3 14 9 20 9"/>
+                            </svg>
+                            <span class="role-title">Receive Files</span>
+                            <span class="role-desc">Enter a PIN or scan QR code to join</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Host Screen -->
+            <section id="host-screen" class="screen" role="region" aria-label="Host room - share PIN or QR code">
+                <div class="host-card glass">
+                    <div class="host-header">
+                        <button type="button" class="btn-back" id="host-back-btn" aria-label="Back to role selection">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="19" y1="12" x2="5" y2="12"/>
+                                <polyline points="12 19 5 12 12 5"/>
+                            </svg>
+                        </button>
+                        <h2>Your Room</h2>
+                        <div class="room-status connected" id="host-status">
+                            <span class="status-dot"></span>
+                            <span>Waiting for peer...</span>
+                        </div>
+                    </div>
+                    
+                    <div class="pin-display" id="pin-display">
+                        <span class="pin-label">Room PIN</span>
+                        <div class="pin-code" id="pin-code">------</div>
+                        <button type="button" class="btn-copy" id="copy-pin-btn" aria-label="Copy PIN to clipboard">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                            </svg>
+                            <span>Copy</span>
+                        </button>
+                    </div>
+
+                    <div class="qr-section">
+                        <span class="qr-label">Or scan QR code</span>
+                        <div class="qr-container" id="qr-container">
+                            <img id="qr-image" src="" alt="QR code for room" />
+                        </div>
+                        <p class="qr-url" id="qr-url"></p>
+                    </div>
+
+                    <div class="peer-info hidden" id="peer-info">
+                        <div class="peer-status">
+                            <span class="status-dot connected"></span>
+                            <span>Peer connected - Ready to send files</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Peer Screen -->
+            <section id="peer-screen" class="screen" role="region" aria-label="Join room - enter PIN or scan QR">
+                <div class="peer-card glass">
+                    <div class="peer-header">
+                        <button type="button" class="btn-back" id="peer-back-btn" aria-label="Back to role selection">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="19" y1="12" x2="5" y2="12"/>
+                                <polyline points="12 19 5 12 12 5"/>
+                            </svg>
+                        </button>
+                        <h2>Join Room</h2>
+                    </div>
+
+                    <div class="join-methods">
+                        <div class="method-tabs" role="tablist">
+                            <button type="button" class="tab-btn active" role="tab" aria-selected="true" data-tab="pin">Enter PIN</button>
+                            <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="qr">Scan QR</button>
+                        </div>
+
+                        <div class="tab-panels">
+                            <div class="tab-panel active" id="pin-panel" role="tabpanel">
+                                <form id="pin-form" class="pin-form">
+                                    <div class="pin-input-group">
+                                        <input type="text" id="pin-input" maxlength="6" pattern="\d{6}" inputmode="numeric" placeholder="000000" aria-label="6-digit room PIN" autocomplete="off" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary btn-block" id="join-btn">Join Room</button>
+                                </form>
+                                <p class="error-message hidden" id="pin-error"></p>
+                            </div>
+
+                            <div class="tab-panel" id="qr-panel" role="tabpanel">
+                                <div class="qr-scanner">
+                                    <div class="scanner-viewport" id="scanner-viewport">
+                                        <video id="scanner-video" playsinline muted></video>
+                                        <div class="scanner-overlay">
+                                            <div class="scanner-frame"></div>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-secondary" id="scan-btn">Start Scanner</button>
+                                    <p class="scanner-hint">Point camera at host's QR code</p>
+                                </div>
+                                <p class="error-message hidden" id="qr-error"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Transfer Screen (Host) -->
+            <section id="transfer-host-screen" class="screen" role="region" aria-label="File transfer - sending">
+                <div class="transfer-card glass">
+                    <div class="transfer-header">
+                        <h2>Sending Files</h2>
+                        <div class="header-actions">
+                            <div class="connection-status">
+                                <span class="status-dot connected" id="host-conn-status"></span>
+                                <span id="host-conn-text">Connected</span>
+                            </div>
+                            <button type="button" class="btn btn-secondary btn-sm" id="host-disconnect-btn" aria-label="Disconnect and go back">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="19" y1="12" x2="5" y2="12"/>
+                                    <polyline points="12 19 5 12 12 5"/>
+                                </svg>
+                                <span>Disconnect</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="drop-zone" id="drop-zone" role="button" tabindex="0" aria-label="Drop files here or click to select">
+                        <svg class="drop-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        <p class="drop-text">Drag & drop files here or click to select</p>
+                        <p class="drop-hint">Multiple files supported</p>
+                        <input type="file" id="file-input" multiple hidden>
+                    </div>
+
+                    <div class="transfer-list hidden" id="transfer-list">
+                        <h3>Transfer Queue</h3>
+                        <ul id="transfer-items"></ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Transfer Screen (Peer) -->
+            <section id="transfer-peer-screen" class="screen" role="region" aria-label="File transfer - receiving">
+                <div class="transfer-card glass">
+                    <div class="transfer-header">
+                        <h2>Receiving Files</h2>
+                        <div class="header-actions">
+                            <div class="connection-status">
+                                <span class="status-dot connected" id="peer-conn-status"></span>
+                                <span id="peer-conn-text">Connected</span>
+                            </div>
+                            <button type="button" class="btn btn-secondary btn-sm" id="peer-disconnect-btn" aria-label="Disconnect and go back">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="19" y1="12" x2="5" y2="12"/>
+                                    <polyline points="12 19 5 12 12 5"/>
+                                </svg>
+                                <span>Disconnect</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="receive-status" id="receive-status">
+                        <div class="status-icon waiting">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="17 8 12 3 7 8"/>
+                                <line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                        </div>
+                        <h3 id="receive-title">Waiting for files...</h3>
+                        <p id="receive-desc">Files sent by host will appear here</p>
+                    </div>
+
+                    <div class="receive-list hidden" id="receive-list">
+                        <h3>Received Files</h3>
+                        <ul id="receive-items"></ul>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Made with ❤️ for secure file sharing by <a href="https://github.com/zulkar-nain" target="_blank">Zulkar Nain</a>.</p>
+        </footer>
+    </div>
+
+    <!-- Progress Modal -->
+    <div class="modal hidden" id="progress-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Transfer Progress</h3>
+                <button type="button" class="btn-close" id="modal-close" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="progress-item" id="progress-item">
+                    <div class="progress-info">
+                        <span class="progress-filename" id="progress-filename"></span>
+                        <div class="progress-stats">
+                            <span id="progress-percent">0%</span>
+                            <span id="progress-speed">0 MB/s</span>
+                        </div>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="progress-bar"></div>
+                    </div>
+                    <div class="progress-actions">
+                        <button type="button" class="btn btn-secondary" id="cancel-transfer">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Toast Container -->
+    <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
+    <script src="{{ url_for('static', filename='js/socket-client.js') }}?v={{ config['VERSION'] | default('1') }}"></script>
+    <script src="{{ url_for('static', filename='js/webrtc.js') }}?v={{ config['VERSION'] | default('1') }}"></script>
+    <script src="{{ url_for('static', filename='js/ui.js') }}?v={{ config['VERSION'] | default('1') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}?v={{ config['VERSION'] | default('1') }}"></script>
+</body>
+</html>
