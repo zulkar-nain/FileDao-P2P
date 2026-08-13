@@ -23,6 +23,10 @@ app = create_app(config_name)
 # Expose socketio for gunicorn
 # gunicorn will use: gunicorn --worker-class eventlet run:app
 
+@app.route('/health', methods=['GET'])
+def health_check():
+    """Health check endpoint for container orchestrators."""
+    return {'status': 'healthy', 'service': 'FileDao'}, 200
 
 def main():
     """Main entry point for direct python run.py execution."""
