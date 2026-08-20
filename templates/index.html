@@ -12,7 +12,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Local P2P File Sharing - Transfer files directly between devices on your local network">
+    <meta name="theme-color" content="#0d1321">
     <title>FileDao - Local P2P File Share</title>
+
+    <!-- Open Graph / social preview -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="FileDao - Local P2P File Sharing">
+    <meta property="og:description" content="Transfer files directly between devices on your local network - secure, fast, no server storage.">
+    <meta property="og:image" content="{{ url_for('static', filename='images/banner.png', _external=True) }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="FileDao - Secure Local P2P File Sharing">
+    <meta property="og:url" content="{{ request.url_root }}">
+    <meta property="og:site_name" content="FileDao">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="FileDao - Local P2P File Sharing">
+    <meta name="twitter:description" content="Transfer files directly between devices on your local network - secure, fast, no server storage.">
+    <meta name="twitter:image" content="{{ url_for('static', filename='images/banner.png', _external=True) }}">
 
     <!-- Favicons and app icons -->
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
