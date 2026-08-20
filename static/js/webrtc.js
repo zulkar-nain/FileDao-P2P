@@ -167,7 +167,7 @@ const WebRTC = (() => {
             if (currentFileTransfer && currentFileTransfer.paused) {
                 console.log('[WebRTC] Buffer low, resuming transfer');
                 currentFileTransfer.paused = false;
-                sendNextChunk();
+                readNextChunk();
             }
         };
     }
