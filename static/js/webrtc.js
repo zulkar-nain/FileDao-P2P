@@ -17,8 +17,7 @@ const WebRTC = (() => {
     };
     
     const DATA_CHANNEL_OPTIONS = {
-        ordered: true,
-        maxRetransmits: 0  // Reliable mode
+        ordered: true // omit maxRetransmits/maxPacketLifeTime for full SCTP reliability
     };
     
     const CHUNK_SIZE = 64 * 1024; // 64KB
