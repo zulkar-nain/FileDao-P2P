@@ -36,6 +36,7 @@ const WebRTC = (() => {
     let pendingFiles = [];
     let currentFileTransfer = null;
     let transferCallbacks = {};
+    let preMetadataChunks = []; // raw chunks that arrived before file metadata
     
     // Event handlers
     const eventHandlers = new Map();
@@ -451,29 +452,22 @@ const WebRTC = (() => {
      * Handle incoming data channel message
      */
     function handleDataChannelMessage(data) {
-        if (!currentFileTransfer && !pendingFiles.length) {
-            // This shouldn't happen - metadata should arrive first
-            console.warn('[WebRTC] Received data without metadata');
+        const buffer = data instanceof ArrayBuffer ? data : new Uint8Array(data).buffer;
+
+        // Chunks can arrive over the P2P data channel before the metadata
+        // event (relayed via the signaling server) is processed - queue them.
+        if (!window.__fileReceiver) {
+            preMetadataChunks.push(buffer);
             return;
         }
-        
-        // Handle as ArrayBuffer
-        const buffer = data instanceof ArrayBuffer ? data : new Uint8Array(data).buffer;
-        const view = new DataView(buffer);
-        
-        // For receiving, we need to track chunks per file
-        // This is a simplified receiver - in production you'd want more robust framing
-        if (!window.__fileReceiver) {
-            window.__fileReceiver = {
-                buffer: new Uint8Array(),
-                expectedSize: 0,
-                currentFile: null,
-                fileIndex: 0,
-                files: [],
-                bytesReceived: 0
-            };
-        }
-        
+
+        processReceivedBuffer(buffer);
+    }
+
+    /**
+     * Process a raw framed buffer received from the data channel
+     */
+    function processReceivedBuffer(buffer) {
         const receiver = window.__fileReceiver;
         const chunk = new Uint8Array(buffer);
         const combined = new Uint8Array(receiver.buffer.length + chunk.length);
@@ -596,6 +590,13 @@ const WebRTC = (() => {
         
         pendingFiles = files;
         emit('files_announced', { files, totalFiles: files.length });
+        
+        // Replay any chunks that arrived before this metadata
+        if (preMetadataChunks.length) {
+            const queued = preMetadataChunks;
+            preMetadataChunks = [];
+            queued.forEach(processReceivedBuffer);
+        }
     }
     
     /**
@@ -612,6 +613,7 @@ const WebRTC = (() => {
         }
         
         pendingFiles = [];
+        preMetadataChunks = [];
         emit('transfer_cancelled');
     }
     
